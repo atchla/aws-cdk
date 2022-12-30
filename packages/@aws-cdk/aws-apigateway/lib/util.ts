@@ -5,6 +5,10 @@ export const ALL_METHODS = ['OPTIONS', 'GET', 'PUT', 'POST', 'DELETE', 'PATCH', 
 
 const ALLOWED_METHODS = ['ANY', ...ALL_METHODS];
 
+// Minimum compression size is valid with a non-negative number between the upper and lower bound in bytes, inclusive
+export const MINIMUM_COMPRESSION_SIZE_LOWER_BOUND = 0;
+export const MINIMUM_COMPRESSION_SIZE_UPPER_BOUND = 10485760; // 10 MB
+
 export function validateHttpMethod(method: string, messagePrefix: string = '') {
   if (!ALLOWED_METHODS.includes(method)) {
     throw new Error(`${messagePrefix}Invalid HTTP method "${method}". Allowed methods: ${ALLOWED_METHODS.join(',')}`);

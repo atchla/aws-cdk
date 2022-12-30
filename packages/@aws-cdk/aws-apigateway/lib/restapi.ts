@@ -19,6 +19,7 @@ import { RequestValidator, RequestValidatorOptions } from './requestvalidator';
 import { IResource, ResourceBase, ResourceOptions } from './resource';
 import { Stage, StageOptions } from './stage';
 import { UsagePlan, UsagePlanProps } from './usage-plan';
+import { MINIMUM_COMPRESSION_SIZE_LOWER_BOUND, MINIMUM_COMPRESSION_SIZE_UPPER_BOUND } from './util';
 
 const RESTAPI_SYMBOL = Symbol.for('@aws-cdk/aws-apigateway.RestApiBase');
 
@@ -194,6 +195,18 @@ export interface RestApiBaseProps {
    * @default - 'Automatically created by the RestApi construct'
    */
   readonly description?: string;
+
+  /**
+   * A nullable integer that is used to enable compression (with non-negative
+   * between 0 and 10485760 (10M) bytes, inclusive) or disable compression
+   * (when undefined) on an API. When compression is enabled, compression or
+   * decompression is not applied on the payload if the payload size is
+   * smaller than this value. Setting it to zero allows compression for any
+   * payload size.
+   *
+   * @default - Compression is disabled.
+   */
+  readonly minimumCompressionSize?: number;
 }
 
 /**
@@ -215,18 +228,6 @@ export interface RestApiProps extends RestApiOptions {
    * @default - RestApi supports only UTF-8-encoded text payloads.
    */
   readonly binaryMediaTypes?: string[];
-
-  /**
-   * A nullable integer that is used to enable compression (with non-negative
-   * between 0 and 10485760 (10M) bytes, inclusive) or disable compression
-   * (when undefined) on an API. When compression is enabled, compression or
-   * decompression is not applied on the payload if the payload size is
-   * smaller than this value. Setting it to zero allows compression for any
-   * payload size.
-   *
-   * @default - Compression is disabled.
-   */
-  readonly minimumCompressionSize?: number;
 
   /**
    * The ID of the API Gateway RestApi resource that you want to clone.
@@ -261,18 +262,6 @@ export interface SpecRestApiProps extends RestApiBaseProps {
    * @see https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-import-api.html
    */
   readonly apiDefinition: ApiDefinition;
-
-  /**
-   * A nullable integer that is used to enable compression (with non-negative
-   * between 0 and 10485760 (10M) bytes, inclusive) or disable compression
-   * (when undefined) on an API. When compression is enabled, compression or
-   * decompression is not applied on the payload if the payload size is
-   * smaller than this value. Setting it to zero allows compression for any
-   * payload size.
-   *
-   * @default - Compression is disabled.
-   */
-  readonly minimumCompressionSize?: number;
 }
 
 /**
@@ -349,6 +338,12 @@ export abstract class RestApiBase extends Resource implements IRestApi {
     this.restApiName = restApiName;
 
     Object.defineProperty(this, RESTAPI_SYMBOL, { value: true });
+
+    if (props.minimumCompressionSize) {
+      if (props.minimumCompressionSize < MINIMUM_COMPRESSION_SIZE_LOWER_BOUND || props.minimumCompressionSize > MINIMUM_COMPRESSION_SIZE_UPPER_BOUND) {
+        throw new Error(`Minimum compression size is valid with a non-negative number between ${MINIMUM_COMPRESSION_SIZE_LOWER_BOUND} and ${MINIMUM_COMPRESSION_SIZE_UPPER_BOUND} byte, inclusive`);
+      }
+    }
   }
 
   /**

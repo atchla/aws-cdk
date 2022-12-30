@@ -3,6 +3,7 @@ import { GatewayVpcEndpoint } from '@aws-cdk/aws-ec2';
 import { testDeprecated } from '@aws-cdk/cdk-build-tools';
 import { App, CfnElement, CfnResource, Lazy, Stack } from '@aws-cdk/core';
 import * as apigw from '../lib';
+import { MINIMUM_COMPRESSION_SIZE_UPPER_BOUND } from '../lib/util';
 
 describe('restapi', () => {
   test('minimal setup', () => {
@@ -1240,6 +1241,32 @@ describe('restapi', () => {
       // THEN
       Template.fromStack(stack).hasResourceProperties(
         'AWS::ApiGateway::RestApi', {});
+    });
+
+    test('minimum compression value is supplied and valid', () => {
+      // GIVEN
+      const stack = new Stack();
+
+      // WHEN
+      const api = new apigw.RestApi(stack, 'my-api', {
+        minimumCompressionSize: 0
+      });
+
+      // THEN
+      // TODO
+    });
+
+    test('minimum compression value is supplied and invalid', () => {
+      // GIVEN
+      const stack = new Stack();
+
+      // WHEN
+      const api = new apigw.RestApi(stack, 'my-api', {
+        minimumCompressionSize: MINIMUM_COMPRESSION_SIZE_UPPER_BOUND + 1
+      });
+
+      // THEN
+      // TODO
     });
   });
 });
